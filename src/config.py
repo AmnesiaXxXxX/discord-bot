@@ -4,20 +4,23 @@ from dotenv import load_dotenv
 import logging
 import time
 import threading
+from loggers import config
 
 load_dotenv()
 
 
 class Config:
+
     DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "None")
     PREFIX = "!"
     DEBUG: bool = bool(os.getenv("DEBUG", False))
     DATABASE_NAME = "database.db"
 
-    def read(self):
-        logger = logging.getLogger("config")
+    def __init__(self) -> None:
+        self._logger = config
+        self.start()
 
-        # Перезагружаем переменные окружения
+    def read(self):
         load_dotenv(override=True)
 
         # Обновляем значения из .env
@@ -28,22 +31,21 @@ class Config:
 
                     new_value = os.environ[key]
                     setattr(Config, key, new_value)
-                    logger.debug(f"{key}: {str(value)[:10]} -> {str(new_value)[:10]}")
+                    self._logger.debug(
+                        f"{key}: {str(value)[:10]} -> {str(new_value)[:10]}"
+                    )
 
     def _start(self):
         while True:
-
             with threading.Lock():
                 self.read()
-            time.sleep(5)
+            time.sleep(30)
 
     def start(self):
-
         thr = threading.Thread(target=self._start, daemon=True)
         thr.start()
 
     def update_debug_level(self, level: bool):
-        logger = logging.getLogger("config")
         Config.DEBUG = level
-        logger.setLevel(logging.DEBUG if level else logging.INFO)
-        logger.info(f"Уровень отладки изменен на: {'DEBUG' if level else 'INFO'}")
+        self._logger.setLevel(logging.DEBUG if level else logging.INFO)
+        self._logger.info(f"Уровень отладки изменен на: {'DEBUG' if level else 'INFO'}")
