@@ -1,4 +1,3 @@
-# Этот файл содержит настройки конфигурации, такие как токен бота и другие параметры.
 import os
 from dotenv import load_dotenv
 import logging
@@ -23,10 +22,9 @@ class Config:
     def read(self):
         load_dotenv(override=True)
 
-        # Обновляем значения из .env
         for key, value in vars(Config).items():
             if not key.startswith("__"):
-                # Если переменная есть в окружении, обновляем её значение
+
                 if key in os.environ:
 
                     new_value = os.environ[key]
