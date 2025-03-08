@@ -4,7 +4,7 @@ from discord.ext import commands
 from utils.database import Database
 from config import Config
 from tree_cls import CustomCommandTree
-from globals import yes, no
+from globals import yes
 from utils.menu_state import MenuManager, MenuState
 from help_command import HelpCommand
 import asyncio
@@ -32,6 +32,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error):
+    message = None
     match type(error):
         case commands.CommandInvokeError:
             message = "Произошла ошибка"
@@ -40,9 +41,13 @@ async def on_command_error(ctx: commands.Context, error):
 
         case commands.MissingPermissions:
             message = "У вас недостаточно прав на исполнение команды"
+
+        case commands.CommandNotFound:
+            pass
         case _:
-            message = "Произошла ошибка"
-    await ctx.reply(message, ephemeral=True)
+            message = "Произошла ошибка "
+    if isinstance(message, str):
+        await ctx.reply(message, ephemeral=True)
 
 
 class MenuCommands(commands.Cog):
