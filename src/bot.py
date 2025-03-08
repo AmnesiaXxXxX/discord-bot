@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands
 from utils.database import Database
 from config import Config
-from tree_cls import CustomCommandTree
 from globals import yes
 from utils.menu_state import MenuManager, MenuState
 from help_command import HelpCommand
@@ -18,7 +17,6 @@ intents.members = True
 bot = commands.Bot(
     command_prefix=Config.PREFIX,
     intents=intents,
-    tree_cls=CustomCommandTree,
     help_command=HelpCommand(),
 )
 
@@ -45,7 +43,7 @@ async def on_command_error(ctx: commands.Context, error):
         case commands.CommandNotFound:
             pass
         case _:
-            message = "Произошла ошибка "
+            message = "Произошла ошибка"
     if isinstance(message, str):
         await ctx.reply(message, ephemeral=True)
 
