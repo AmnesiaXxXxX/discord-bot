@@ -3,3 +3,5 @@ venv/
 *.pyc
 *.pyo
 __pycache__/
+*.sh
+*.service
