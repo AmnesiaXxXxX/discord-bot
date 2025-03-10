@@ -30,7 +30,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error):
-    message = None
+    message = "`Error`"
     match type(error):
         case commands.CommandInvokeError:
             message = "Произошла ошибка"
@@ -45,7 +45,7 @@ async def on_command_error(ctx: commands.Context, error):
         case _:
             message = "Произошла ошибка"
     if isinstance(message, str):
-        await ctx.reply(message, ephemeral=True)
+        await ctx.send(message, ephemeral=True)
 
 
 class MenuCommands(commands.Cog):
@@ -66,9 +66,16 @@ class MenuCommands(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def complete(self, ctx: commands.Context):
-        """Вывод сообщения об успешном завершении задания"""
+        """Вывод сообщения об успешном завершении задания. Для пометки конкретного задания ответить на сообщение"""
         await ctx.message.delete()
-        await ctx.message.channel.send(embed=menu_manager.get_task_complete_embed())
+        reference = ctx.message.reference
+        if reference:
+            embeds = reference.resolved.embeds
+            embeds.append(menu_manager.get_task_complete_embed())
+            await reference.resolved.edit(embeds=embeds)
+            
+        else:
+            await ctx.message.channel.send(embed=menu_manager.get_task_complete_embed())
 
 
 class UtilityCommands(commands.Cog):
