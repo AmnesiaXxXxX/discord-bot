@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import logging
 import time
 import threading
-from loggers import config
 
 load_dotenv()
 
@@ -11,12 +10,12 @@ load_dotenv()
 class Config:
 
     DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "None")
-    PREFIX = "!"
+    PREFIX = "/"
     DEBUG: bool = bool(os.getenv("DEBUG", False))
     DATABASE_NAME = "database.db"
 
     def __init__(self) -> None:
-        self._logger = config
+        self._logger = logging.getLogger("discord")
         self.start()
 
     def read(self):

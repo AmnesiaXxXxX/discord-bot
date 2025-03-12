@@ -6,3 +6,6 @@ __pycache__/
 *.sh
 *.service
 logs/
+.vscode/
+temp/
+*.db

@@ -20,7 +20,7 @@ class HelpCommand(commands.HelpCommand):
                 if cmd.help:
                     desc += f" - {cmd.help}"
                 commands_desc.append(desc)
-            text = "\n".join(commands_desc)
+            text = "\n\n".join(commands_desc)
             embed.add_field(
                 name=(
                     f"{cog.qualified_name} {('- ' + cog.description) if cog.description else ''}"
