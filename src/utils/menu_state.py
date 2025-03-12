@@ -1,7 +1,11 @@
 import discord
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Sequence
 import asyncio
+from utils.database import Database
+
+db = Database()
+
 
 class MenuState(Enum):
     """Перечисление возможных состояний меню."""
@@ -9,18 +13,26 @@ class MenuState(Enum):
     EMBED_TEXT = 1
     EMBED_CONTENT = 2
     EMBED_PHOTO = 3
-    FINISHED = 4
+    EMBED_FILES = 4
+    FINISHED = 5
 
 
 class MenuManager:
     """Менеджер для управления состояниями меню и данными пользователей."""
 
-    __slots__ = ("user_states", "user_data", "messages_to_delete", "user_channels")
+    __slots__ = (
+        "user_states",
+        "user_data",
+        "messages_to_delete",
+        "user_channels",
+    )
 
     def __init__(self) -> None:
         """Инициализация MenuManager с пустыми словарями состояний и данных."""
         self.user_states: Dict[int, MenuState] = {}
-        self.user_data: Dict[int, Dict[str, str]] = {}
+        self.user_data: Dict[
+            int, Dict[str, str | list[str] | Sequence[discord.File]]
+        ] = {}
         self.messages_to_delete: Dict[int, list[discord.Message]] = {}
         self.user_channels: Dict[int, int] = {}
 
@@ -70,7 +82,11 @@ class MenuManager:
                 MenuState.EMBED_PHOTO,
                 "Хотите прикрепить фотографию? Если да, отправьте её, если нет, напишите 'нет':",
             ),
-            MenuState.EMBED_PHOTO: (MenuState.FINISHED, None),
+            MenuState.EMBED_PHOTO: (
+                MenuState.EMBED_FILES,
+                "Хотите прикрепить файлы? Если да, отправьте ссылку на файл, если нет, напишите 'нет':",
+            ),
+            MenuState.EMBED_FILES: (MenuState.FINISHED, None),
         }
         return state_transitions.get(current_state, (MenuState.FINISHED, None))
 
@@ -88,37 +104,36 @@ class MenuManager:
 
         return prompt
 
-    def get_summary_embed(self, user_id: int) -> discord.Embed:
-        """Создать сводное embed-сообщение из данных пользователя.
-
-        Аргументы:
-            user_id: ID пользователя Discord
-
-        Возвращает:
-            Discord embed с информацией о пользователе
-        """
+    def get_summary_embed(self, user_id: int) -> Sequence[discord.Embed]:
+        """Создать сводное embed-сообщение из данных пользователя."""
         data = self.user_data.get(user_id, {})
-
+        embeds = []
         embed = discord.Embed(
+            url="https://t.me/za_nashih_postim",
             title=data.get("EMBED_TEXT", "(заголовок задания)"),
             description=data.get("EMBED_CONTENT", "(описание задания)"),
             color=discord.Color.gold(),
         )
-
+        embeds.append(embed)
         for key, value in data.items():
             if not value:
                 continue
 
             if key == "EMBED_PHOTO":
-                embed.set_image(url=value)
-
+                for url in value:
+                    embed = discord.Embed(
+                        url="https://t.me/za_nashih_postim", color=discord.Color.gold()
+                    )
+                    embed.set_image(url=url)
+                    embeds.append(embed)
             elif key == "EMBED_TEXT":
-                embed.title = value
+                if isinstance(value, str):
+                    embed.title = value
             elif key == "EMBED_CONTENT":
                 if isinstance(value, str) and value.lower() != "нет":
                     embed.description = value
 
-        return embed
+        return embeds
 
     def get_task_complete_embed(self) -> discord.Embed:
         return discord.Embed(
